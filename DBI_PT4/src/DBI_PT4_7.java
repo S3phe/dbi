@@ -35,10 +35,9 @@ public class DBI_PT4_7 {
 	
 	protected static void db_optimize(Connection con) throws SQLException{
 		Statement sql = con.createStatement();
-		
 		sql.execute("SET FOREIGN_KEY_CHECKS=0");
 		sql.execute("SET UNIQUE_CHECKS=0");
-		sql.execute("SET @@global.innodb_thread_concurrency =1");
+		//sql.execute("SET @@global.innodb_thread_concurrency =4");
 		//sql.execute("SET @@global.innodb_change_buffer_max_size=50");
 		//sql.execute("SET @@global.innodb_checksum_algorithm='NONE'");
 		//sql.execute("SET @@global.innodb_io_capacity=2000");
@@ -53,11 +52,12 @@ public class DBI_PT4_7 {
 		
 		sql.execute("SET FOREIGN_KEY_CHECKS=1");
 		sql.execute("SET UNIQUE_CHECKS=1");
-		sql.execute("SET @@global.innodb_thread_concurrency =0");
+		//sql.execute("SET @@global.innodb_thread_concurrency =0");
 		//sql.execute("SET @@global.innodb_change_buffer_max_size=25");
 		//sql.execute("SET @@global.innodb_checksum_algorithm='INNODB'");
 		//sql.execute("SET @@global.innodb_io_capacity=200");
 		con.setAutoCommit(true);
+		
 	}
 	
 	
@@ -69,13 +69,40 @@ public class DBI_PT4_7 {
 		// - BRANCHNAME = (random 20 chars)
 		// - ADDRESS = (random 72 chars)
 		
+		/*
+		
+for (int i = 0; i &lt; 1000; i++) {
+  build.append("(?, ?, ?)");
+  if (i &lt; 999) {
+    build.append(", ");
+  } else {
+    build.append(";");
+  }
+}
+ 
+		 */
+		
+		StringBuilder build = new StringBuilder("INSERT INTO branches (branchid, branchname, balance, address) VALUES ");
+		
+		
+		
+		
 		String feld_branchname = randomString(20);
 		String feld_address = randomString(72);
 
-		
 		for (int i=1;i<=n;i++){
-			statement.addBatch("INSERT INTO branches VALUES ("+i+",'"+feld_branchname+"',0,'"+feld_address+"')");
+			//statement.addBatch("INSERT INTO branches (branchid, branchname, balance, address) VALUES ("+i+",'"+feld_branchname+"',0,'"+feld_address+"');");
+		
+			build.append("("+i+",'"+feld_branchname+"',0,'"+feld_address+"')");
+			if (i<n){
+				build.append(", ");
+				
+			}else{
+				build.append(";");
+			}
+			
 		}
+		statement.addBatch(build.toString());
 	}
 	
 	protected static void fill_accounts(Statement statement,int n) throws SQLException{
@@ -85,14 +112,27 @@ public class DBI_PT4_7 {
 		// - BALANCE = 0
 		// - BRANCHID = (random 1 bis n)
 		// - ADDRESS = (random 68 chars)
+		
+		StringBuilder build = new StringBuilder("INSERT INTO accounts (accid, name, balance, branchid, address) VALUES ");
+		
+
 		int feld_branchid=0; 
 		String feld_name = randomString(20);
 		String feld_address = randomString(68);
 		
 		for (int i=1;i<=n*100000;i++){
 			feld_branchid = rand.nextInt(n)+1;
-			statement.addBatch("INSERT INTO accounts VALUES ("+i+",'"+feld_name+"',0,"+feld_branchid+",'"+feld_address+"')");
+			
+			build.append("("+i+",'"+feld_name+"',0,"+feld_branchid+",'"+feld_address+"')");
+			if (i<n*100000){
+				build.append(", ");
+				
+			}else{
+				build.append(";");
+			}
 		}
+		//System.out.println(build.toString());
+		statement.addBatch(build.toString());
 	}
 	
 	protected static void fill_tellers(Statement statement,int n) throws SQLException{
@@ -103,20 +143,31 @@ public class DBI_PT4_7 {
 		// BRANCHID = (random 1 bis n)
 		// ADDRESS = (random 68 chars)
 		
+
+		StringBuilder build = new StringBuilder("INSERT INTO tellers (tellerid, tellername, balance, branchid, address) VALUES ");
+		
 		
 		int feld_branchid= 0; 
 		String feld_tellername=randomString(20);
 		String feld_address = randomString(68);
 		for (int i=1;i<=n*10;i++){
 			feld_branchid= rand.nextInt(n)+1;
-			statement.addBatch("INSERT INTO tellers VALUES ("+i+",'"+feld_tellername+"',0,"+feld_branchid+",'"+feld_address+"')");
+			//statement.addBatch("INSERT INTO tellers VALUES ("+i+",'"+feld_tellername+"',0,"+feld_branchid+",'"+feld_address+"')");
+		
+			build.append("("+i+",'"+feld_tellername+"',0,"+feld_branchid+",'"+feld_address+"')");	
+			if (i<n*10){
+				build.append(", ");
+				
+			}else{
+				build.append(";");
+			}
 		}
-	
+		statement.addBatch(build.toString());
 	}
 	
 	public static void main(String[] args) throws SQLException {
 				// Datenbankverbindung herstellen
-				Connection con = DriverManager.getConnection("jdbc:mariadb://192.168.122.64:3306","dbi", "dbi_pass");
+				Connection con = DriverManager.getConnection("jdbc:mariadb://10.211.55.14:3306/benchmark?rewriteBatchedStatements=true","dbi", "dbi_pass");
 				
 				
 				
@@ -146,25 +197,40 @@ public class DBI_PT4_7 {
 				// Batch-Statements initialisieren
 				Statement statement=con.createStatement();
 				
+				fill_branches(statement, n);
+				
 				
 				long startTime,runTime=0;
+				
+				
+				
 				startTime= System.currentTimeMillis();
-				
-				fill_branches(statement, n);
-				fill_accounts(statement, n);
-				fill_tellers(statement, n);
-				
-				//Alle SQL Befehle ausführen
 				statement.executeBatch();
-				
-				
 				runTime=System.currentTimeMillis()-startTime;
+				System.out.println("Branches: "+runTime+" ms ("+(runTime/1000)+" s)");
 				
-				System.out.println("Gesamtlaufzeit: "+runTime+" ms ("+(runTime/1000)+" s)");
+				
+				fill_accounts(statement, n);
+				startTime= System.currentTimeMillis();
+				statement.executeBatch();
+				runTime=System.currentTimeMillis()-startTime;
+				System.out.println("Branches: "+runTime+" ms ("+(runTime/1000)+" s)");
+				
+				fill_tellers(statement, n);
+				startTime= System.currentTimeMillis();
+				statement.executeBatch();
+				runTime=System.currentTimeMillis()-startTime;
+				System.out.println("Branches: "+runTime+" ms ("+(runTime/1000)+" s)");
+				//Alle SQL Befehle ausführen
+				
+				
+				con.commit();
+				db_deoptimize(con);	
+				
+				
 				
 				// Optimierungen rückgängig machen
-				con.commit();
-				db_deoptimize(con);
+
 
 				System.out.println("Fertig.");
 				
