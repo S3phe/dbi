@@ -37,30 +37,15 @@ public class DBI_PT4_7 {
 		Statement sql = con.createStatement();
 		sql.execute("SET FOREIGN_KEY_CHECKS=0");
 		sql.execute("SET UNIQUE_CHECKS=0");
-		//sql.execute("SET @@global.innodb_thread_concurrency =4");
-		//sql.execute("SET @@global.innodb_change_buffer_max_size=50");
-		//sql.execute("SET @@global.innodb_checksum_algorithm='NONE'");
-		//sql.execute("SET @@global.innodb_io_capacity=2000");
 		con.setAutoCommit(false);
-		
-		
-
 	}
 	
 	protected static void db_deoptimize(Connection con) throws SQLException{
 		Statement sql = con.createStatement();
-		
 		sql.execute("SET FOREIGN_KEY_CHECKS=1");
 		sql.execute("SET UNIQUE_CHECKS=1");
-		//sql.execute("SET @@global.innodb_thread_concurrency =0");
-		//sql.execute("SET @@global.innodb_change_buffer_max_size=25");
-		//sql.execute("SET @@global.innodb_checksum_algorithm='INNODB'");
-		//sql.execute("SET @@global.innodb_io_capacity=200");
 		con.setAutoCommit(true);
-		
 	}
-	
-	
 	
 	protected static void fill_branches(Statement statement, int n) throws SQLException{
 		// Branches:  (n Tupel)
@@ -69,30 +54,11 @@ public class DBI_PT4_7 {
 		// - BRANCHNAME = (random 20 chars)
 		// - ADDRESS = (random 72 chars)
 		
-		/*
-		
-for (int i = 0; i &lt; 1000; i++) {
-  build.append("(?, ?, ?)");
-  if (i &lt; 999) {
-    build.append(", ");
-  } else {
-    build.append(";");
-  }
-}
- 
-		 */
-		
 		StringBuilder build = new StringBuilder("INSERT INTO branches (branchid, branchname, balance, address) VALUES ");
-		
-		
-		
-		
 		String feld_branchname = randomString(20);
 		String feld_address = randomString(72);
 
 		for (int i=1;i<=n;i++){
-			//statement.addBatch("INSERT INTO branches (branchid, branchname, balance, address) VALUES ("+i+",'"+feld_branchname+"',0,'"+feld_address+"');");
-		
 			build.append("("+i+",'"+feld_branchname+"',0,'"+feld_address+"')");
 			if (i<n){
 				build.append(", ");
@@ -102,7 +68,7 @@ for (int i = 0; i &lt; 1000; i++) {
 			}
 			
 		}
-		statement.addBatch(build.toString());
+		statement.execute(build.toString());
 	}
 	
 	protected static void fill_accounts(Statement statement,int n) throws SQLException{
@@ -131,8 +97,7 @@ for (int i = 0; i &lt; 1000; i++) {
 				build.append(";");
 			}
 		}
-		//System.out.println(build.toString());
-		statement.addBatch(build.toString());
+		statement.execute(build.toString());
 	}
 	
 	protected static void fill_tellers(Statement statement,int n) throws SQLException{
@@ -150,10 +115,9 @@ for (int i = 0; i &lt; 1000; i++) {
 		int feld_branchid= 0; 
 		String feld_tellername=randomString(20);
 		String feld_address = randomString(68);
+		
 		for (int i=1;i<=n*10;i++){
 			feld_branchid= rand.nextInt(n)+1;
-			//statement.addBatch("INSERT INTO tellers VALUES ("+i+",'"+feld_tellername+"',0,"+feld_branchid+",'"+feld_address+"')");
-		
 			build.append("("+i+",'"+feld_tellername+"',0,"+feld_branchid+",'"+feld_address+"')");	
 			if (i<n*10){
 				build.append(", ");
@@ -162,12 +126,12 @@ for (int i = 0; i &lt; 1000; i++) {
 				build.append(";");
 			}
 		}
-		statement.addBatch(build.toString());
+		statement.execute(build.toString());
 	}
 	
 	public static void main(String[] args) throws SQLException {
 				// Datenbankverbindung herstellen
-				Connection con = DriverManager.getConnection("jdbc:mariadb://10.211.55.14:3306/benchmark?rewriteBatchedStatements=true","dbi", "dbi_pass");
+				Connection con = DriverManager.getConnection("jdbc:mariadb://10.37.129.3:3306/benchmark?rewriteBatchedStatements=true","dbi", "dbi_pass");
 				
 				
 				
@@ -186,51 +150,40 @@ for (int i = 0; i &lt; 1000; i++) {
 				String eingabe = scanner.nextLine();
 				int n=Integer.parseInt(eingabe);
 				scanner.close();
-	
-				
 				
 				// Datenbank neu erstellen
 				create_database(con);
-				db_optimize(con);
+				db_optimize(con);			// Unsere Optimierungen anwenden
 				
 				
 				// Batch-Statements initialisieren
 				Statement statement=con.createStatement();
-				
+				long startTime_summe,startTime,runTime=0;
+				startTime= System.currentTimeMillis();
+				startTime_summe = startTime;
 				fill_branches(statement, n);
-				
-				
-				long startTime,runTime=0;
-				
-				
-				
-				startTime= System.currentTimeMillis();
-				statement.executeBatch();
 				runTime=System.currentTimeMillis()-startTime;
 				System.out.println("Branches: "+runTime+" ms ("+(runTime/1000)+" s)");
 				
+				System.gc(); // Empfehlung den Garbage Collector auszuführen, damit die RAM-Nutzung im Rahmen bleibt.
 				
+				startTime= System.currentTimeMillis();
+				runTime=System.currentTimeMillis()-startTime;
 				fill_accounts(statement, n);
-				startTime= System.currentTimeMillis();
-				statement.executeBatch();
 				runTime=System.currentTimeMillis()-startTime;
-				System.out.println("Branches: "+runTime+" ms ("+(runTime/1000)+" s)");
+				System.out.println("Accounts: "+runTime+" ms ("+(runTime/1000)+" s)");
 				
+				System.gc(); // Empfehlung den Garbage Collector auszuführen, damit die RAM-Nutzung im Rahmen bleibt.
+				
+				startTime= System.currentTimeMillis();
 				fill_tellers(statement, n);
-				startTime= System.currentTimeMillis();
-				statement.executeBatch();
 				runTime=System.currentTimeMillis()-startTime;
-				System.out.println("Branches: "+runTime+" ms ("+(runTime/1000)+" s)");
-				//Alle SQL Befehle ausführen
+				System.out.println("Tellers: "+runTime+" ms ("+(runTime/1000)+" s)");
+				runTime=System.currentTimeMillis()-startTime_summe;
+				System.out.println("Summe: "+runTime+" ms ("+(runTime/1000)+" s)");
 				
-				
-				con.commit();
-				db_deoptimize(con);	
-				
-				
-				
-				// Optimierungen rückgängig machen
-
+				con.commit();			// Alle offenen Vorgänge abschließen
+				db_deoptimize(con);		// Optimierungen rückgängig machen
 
 				System.out.println("Fertig.");
 				
