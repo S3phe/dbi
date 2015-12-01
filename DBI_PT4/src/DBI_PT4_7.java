@@ -71,12 +71,14 @@ public class DBI_PT4_7 {
 	}
 	
 	protected static void fill_branches(Statement statement, int n) throws SQLException{
-		StringBuilder build = new StringBuilder("INSERT INTO branches (branchid, branchname, balance, address) VALUES ");
-		String feld_branchname = randomString(20);
-		String feld_address = randomString(72);
+		StringBuilder build = new StringBuilder();
+		build.append("INSERT INTO branches ("
+				+ "branchid, branchname, balance, address) VALUES ");
+		String	branchname = randomString(20);
+		String	address = randomString(72);
 
 		for (int i=1;i<=n;i++){
-			build.append("("+i+",'"+feld_branchname+"',0,'"+feld_address+"')");
+			build.append("("+i+",'"+branchname+"',0,'"+address+"')");
 			if (i<n){
 				build.append(", ");
 				
@@ -89,15 +91,17 @@ public class DBI_PT4_7 {
 	}
 	
 	protected static void fill_accounts(Statement statement,int n) throws SQLException{
-		StringBuilder build = new StringBuilder("INSERT INTO accounts (accid, name, balance, branchid, address) VALUES ");
+		StringBuilder build = new StringBuilder();
+		build.append("INSERT INTO accounts ("
+				+ "accid, name, balance, branchid, address) VALUES ");
 
-		int feld_branchid=0; 
-		String feld_name = randomString(20);
-		String feld_address = randomString(68);
+		int 	branchid=0; 
+		String 	name = randomString(20);
+		String 	address = randomString(68);
 		
 		for (int i=1;i<=n*100000;i++){
-			feld_branchid = rand.nextInt(n)+1;
-			build.append("("+i+",'"+feld_name+"',0,"+feld_branchid+",'"+feld_address+"')");
+			branchid = rand.nextInt(n)+1;
+			build.append("("+i+",'"+name+"',0,"+branchid+",'"+address+"')");
 			if (i<n*100000){
 				build.append(", ");
 			}else{
@@ -108,15 +112,17 @@ public class DBI_PT4_7 {
 	}
 	
 	protected static void fill_tellers(Statement statement,int n) throws SQLException{
-		StringBuilder build = new StringBuilder("INSERT INTO tellers (tellerid, tellername, balance, branchid, address) VALUES ");
+		StringBuilder build = new StringBuilder();
+		build.append("INSERT INTO tellers ("
+				+ "tellerid, tellername, balance, branchid, address) VALUES ");
 		
-		int feld_branchid= 0; 
-		String feld_tellername=randomString(20);
-		String feld_address = randomString(68);
+		int 	branchid= 0; 
+		String 	tellername=randomString(20);
+		String 	address = randomString(68);
 		
 		for (int i=1;i<=n*10;i++){
-			feld_branchid= rand.nextInt(n)+1;
-			build.append("("+i+",'"+feld_tellername+"',0,"+feld_branchid+",'"+feld_address+"')");	
+			branchid= rand.nextInt(n)+1;
+			build.append("("+i+",'"+tellername+"',0,"+branchid+",'"+address+"')");	
 			if (i<n*10){
 				build.append(", ");
 				
@@ -128,12 +134,14 @@ public class DBI_PT4_7 {
 	}
 	
 	public static void main(String[] args) throws SQLException {
-		// Datenbankverbindung herstellen und optimieren, Datenbank "benchmark" gemäß Aufgabe anlegen.
+		// DMBS verbinden und Session optimieren
 		Connection con = DriverManager.getConnection("jdbc:mariadb://"
 				+ "10.37.129.3:3306"
 				+ "/?rewriteBatchedStatements=true","dbi", "dbi_pass");
 		Statement statement=con.createStatement();
 		db_optimize(con);
+		
+		// Datenbank gemäß Aufgabenstellung anlegen
 		create_database(statement);
 		
 		// Eingabe initialisieren
@@ -141,8 +149,9 @@ public class DBI_PT4_7 {
 		
 		// Aufgabenstellung
 		System.out.println("Aufgabenstellung: Praktikumgsaufgabe 7\n"
-				+ "Entwickeln Sie ein Programm, das einen Aufrufparameter n erwartet "
-				+ "und eine initiale ntps-Datenbank auf dem gewählten Datenbankmanagementsystem erzeugt.\n--- ");
+				+ "Entwickeln Sie ein Programm, das einen Aufrufparameter n"
+				+ "erwartet und eine initiale ntps-Datenbank auf dem "
+				+ "gewählten Datenbankmanagementsystem erzeugt.\n--- ");
 				
 		// n abfragen
 		System.out.print("Geben Sie den Parameter 'n' ein: ");
