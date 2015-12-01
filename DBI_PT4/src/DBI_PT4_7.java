@@ -12,7 +12,6 @@ public class DBI_PT4_7 {
 	
 	public static String randomString (int length) {
 		String chars="ABCDEFGH0123456789";
-		
 		StringBuilder buf = new StringBuilder();
 		for (int i=0; i<length; i++) {
 			buf.append(chars.charAt(rand.nextInt(chars.length())));
@@ -22,11 +21,10 @@ public class DBI_PT4_7 {
 	protected static void create_database(Connection con) throws SQLException{
 		Statement statement = con.createStatement(); 
 		// Alte Datenbank löschen
-		statement.execute("DROP DATABASE benchmark");
+		statement.execute("DROP DATABASE IF EXISTS benchmark");
 		// Datenbank erstellen
 		statement.execute("CREATE DATABASE benchmark");
 		statement.execute("USE benchmark");
-		// Tabellen erstellen
 		statement.execute("CREATE TABLE branches (branchid int not null, branchname char(20) not null, balance int not null, address char(72) not null, primary key (branchid));");
 		statement.execute("CREATE TABLE accounts (accid int not null, name char(20) not null, balance int not null, branchid int not null, address char(68) not null, primary key (accid), foreign key (branchid) references branches (branchid));");
 		statement.execute("CREATE TABLE tellers (tellerid int not null, tellername char(20) not null, balance int not null, branchid int not null, address char(68) not null, primary key (tellerid), foreign key (branchid) references branches (branchid));");
