@@ -3,7 +3,6 @@ import java.sql.*;
 import java.util.Scanner;
 import java.util.Random;
 
-
 public class DBI_PT4_7 {
 
 	protected static Random rand = new Random();
@@ -23,10 +22,38 @@ public class DBI_PT4_7 {
 		statement.execute("CREATE DATABASE benchmark");
 		statement.execute("USE benchmark");
 		// Tabellen gemäß Vorgabe anlegen
-		statement.execute("CREATE TABLE branches (branchid int not null, branchname char(20) not null, balance int not null, address char(72) not null, primary key (branchid));");
-		statement.execute("CREATE TABLE accounts (accid int not null, name char(20) not null, balance int not null, branchid int not null, address char(68) not null, primary key (accid), foreign key (branchid) references branches (branchid));");
-		statement.execute("CREATE TABLE tellers (tellerid int not null, tellername char(20) not null, balance int not null, branchid int not null, address char(68) not null, primary key (tellerid), foreign key (branchid) references branches (branchid));");
-		statement.execute("CREATE TABLE history (accid int not null, tellerid int not null, delta int not null, branchid int not null, accbalance int not null, cmmnt char(30) not null, foreign key (accid) references accounts (accid), foreign key (tellerid) references tellers (tellerid),	foreign key (branchid) references branches (branchid));"); 
+		statement.execute("CREATE TABLE branches ("
+				+ "branchid int not null, "
+				+ "branchname char(20) not null, "
+				+ "balance int not null, "
+				+ "address char(72) not null, "
+				+ "primary key (branchid));");
+		statement.execute("CREATE TABLE accounts ("
+				+ "accid int not null, "
+				+ "name char(20) not null, "
+				+ "balance int not null, "
+				+ "branchid int not null, "
+				+ "address char(68) not null, "
+				+ "primary key (accid), "
+				+ "foreign key (branchid) references branches (branchid));");
+		statement.execute("CREATE TABLE tellers ("
+				+ "tellerid int not null, "
+				+ "tellername char(20) not null, "
+				+ "balance int not null, "
+				+ "branchid int not null, "
+				+ "address char(68) not null, "
+				+ "primary key (tellerid), "
+				+ "foreign key (branchid) references branches (branchid));");
+		statement.execute("CREATE TABLE history ("
+				+ "accid int not null, "
+				+ "tellerid int not null, "
+				+ "delta int not null, "
+				+ "branchid int not null, "
+				+ "accbalance int not null, "
+				+ "cmmnt char(30) not null, "
+				+ "foreign key (accid) references accounts (accid), "
+				+ "foreign key (tellerid) references tellers (tellerid),"
+				+ "foreign key (branchid) references branches (branchid));"); 
 	}
 	
 	protected static void db_optimize(Connection con) throws SQLException{
@@ -101,17 +128,21 @@ public class DBI_PT4_7 {
 	}
 	
 	public static void main(String[] args) throws SQLException {
-		// Datenbankverbindung herstellen und optimieren
-		Connection con = DriverManager.getConnection("jdbc:mariadb://10.37.129.3:3306/?rewriteBatchedStatements=true","dbi", "dbi_pass");
+		// Datenbankverbindung herstellen und optimieren, Datenbank "benchmark" gemäß Aufgabe anlegen.
+		Connection con = DriverManager.getConnection("jdbc:mariadb://"
+				+ "10.37.129.3:3306"
+				+ "/?rewriteBatchedStatements=true","dbi", "dbi_pass");
 		Statement statement=con.createStatement();
 		db_optimize(con);
+		create_database(statement);
 		
 		// Eingabe initialisieren
 		Scanner scanner = new Scanner(System.in);
 		
 		// Aufgabenstellung
-		System.out.println("Aufgabenstellung: Praktikumgsaufgabe 7\nEntwickeln Sie ein Programm, das einen Aufrufparameter n erwartet und eine initiale ntps-Datenbank auf dem gewählten Datenbankmanagementsystem erzeugt. ");
-		System.out.println("---");
+		System.out.println("Aufgabenstellung: Praktikumgsaufgabe 7\n"
+				+ "Entwickeln Sie ein Programm, das einen Aufrufparameter n erwartet "
+				+ "und eine initiale ntps-Datenbank auf dem gewählten Datenbankmanagementsystem erzeugt.\n--- ");
 				
 		// n abfragen
 		System.out.print("Geben Sie den Parameter 'n' ein: ");
@@ -124,14 +155,14 @@ public class DBI_PT4_7 {
 		startTime= System.currentTimeMillis();
 
 		// Initiale TPS-Datenbank erstellen
-		create_database(statement);
+		
 		fill_branches(statement, n);
 		fill_accounts(statement, n);
 		fill_tellers(statement, n);
 
 		// Zeit stoppen
 		runTime=System.currentTimeMillis()-startTime;
-		System.out.println("Fertig.\n Laufzeit: "+runTime+" ms ("+(runTime/1000)+" s)");
+		System.out.println("Fertig. (Laufzeit: "+runTime+" ms)");
 		
 		// Datenbanksession deoptimieren und Verbindung beenden
 		con.commit();			
