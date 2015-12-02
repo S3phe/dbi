@@ -92,23 +92,36 @@ public class DBI_PT4_7 {
 	
 	protected static void fill_accounts(Statement statement,int n) throws SQLException{
 		StringBuilder build = new StringBuilder();
-		build.append("INSERT INTO accounts ("
-				+ "accid, name, balance, branchid, address) VALUES ");
-
 		int 	branchid=0; 
 		String 	name = randomString(20);
 		String 	address = randomString(68);
+		int accid=0;
 		
-		for (int i=1;i<=n*100000;i++){
-			branchid = rand.nextInt(n)+1;
-			build.append("("+i+",'"+name+"',0,"+branchid+",'"+address+"')");
-			if (i<n*100000){
-				build.append(", ");
-			}else{
-				build.append(";");
+		// Daten splitten, da RAM der VM (DBMS) nicht ausreicht
+		
+		// Angabe, wieviele Werte in einen String sollen:
+		int inserts_pro_durchgang = 1000000;
+		
+		int inserts_auf_einmal = (n*100000) / inserts_pro_durchgang;
+
+		for (int i=0;i<inserts_auf_einmal;i++)
+		{	
+			build.append("INSERT INTO accounts ("
+					+ "accid, name, balance, branchid, address) VALUES ");
+			for (int j=1;j<=inserts_pro_durchgang;j++)
+			{
+				branchid = rand.nextInt(n)+1;
+				accid=i*inserts_pro_durchgang + j;
+				build.append("("+accid+",'"+name+"',0,"+branchid+",'"+address+"')");
+				if (j<inserts_pro_durchgang){
+					build.append(", ");
+				}else{
+					build.append(";");
+				}
 			}
+			statement.execute(build.toString());
+			build.delete(0,build.length());
 		}
-		statement.execute(build.toString());
 	}
 	
 	protected static void fill_tellers(Statement statement,int n) throws SQLException{
@@ -136,7 +149,7 @@ public class DBI_PT4_7 {
 	public static void main(String[] args) throws SQLException {
 		// DMBS verbinden und Session optimieren
 		Connection con = DriverManager.getConnection("jdbc:mariadb://"
-				+ "10.37.129.3:3306"
+				+ "192.168.122.3:3306"
 				+ "/?rewriteBatchedStatements=true","dbi", "dbi_pass");
 		Statement statement=con.createStatement();
 		db_optimize(con);
