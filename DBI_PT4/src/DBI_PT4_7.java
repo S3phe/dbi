@@ -101,10 +101,9 @@ public class DBI_PT4_7 {
 		
 		// Angabe, wieviele Werte in einen String sollen:
 		int inserts_pro_durchgang = 1000000;
-		
-		int inserts_auf_einmal = (n*100000) / inserts_pro_durchgang;
+		int insert_durchgaenge = (n*100000) / inserts_pro_durchgang;
 
-		for (int i=0;i<inserts_auf_einmal;i++)
+		for (int i=0;i<insert_durchgaenge;i++)
 		{	
 			build.append("INSERT INTO accounts ("
 					+ "accid, name, balance, branchid, address) VALUES ");
@@ -149,7 +148,7 @@ public class DBI_PT4_7 {
 	public static void main(String[] args) throws SQLException {
 		// DMBS verbinden und Session optimieren
 		Connection con = DriverManager.getConnection("jdbc:mariadb://"
-				+ "192.168.122.3:3306"
+				+ "10.37.129.3:3306"
 				+ "/?rewriteBatchedStatements=true","dbi", "dbi_pass");
 		Statement statement=con.createStatement();
 		db_optimize(con);
