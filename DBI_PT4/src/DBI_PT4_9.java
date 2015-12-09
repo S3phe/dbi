@@ -22,8 +22,20 @@ public class DBI_PT4_9 {
 		return result;
 	}
 	
-	public void payIn()
+	public void payIn(Connection con, int accId, int tellerId, int branchId, int delta) throws SQLException
 	{
+		Statement stm = con.createStatement();
+		ResultSet rs = null;
+		int result = 0;
+		String txt = "select balance from branches where branchid = "+branchId;
+		stm.executeUpdate(txt);
+		rs = stm.getResultSet();
+		if( rs != null ) 
+	    {
+	    		result = rs.getInt(1);
+	    		result += delta;
+	    }
+		txt = "update branches SET balance ="+result+" where accid"
 		
 	}
 	
