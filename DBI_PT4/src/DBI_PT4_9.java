@@ -22,7 +22,7 @@ public class DBI_PT4_9 {
 		return result;
 	}
 	
-	public void payIn(Connection con, int accId, int tellersId, int branchId, int delta) throws SQLException
+	public static void payIn(Connection con, int accId, int tellersId, int branchId, int delta) throws SQLException
 	{
 		Statement stm = con.createStatement();
 		ResultSet rs = null;
@@ -75,12 +75,8 @@ public class DBI_PT4_9 {
 		//	-	In "Branches" die Bilanzsumme Balance passend zur Branchid aktualisieren
 		//	-	In "Tellers" die Bilanzsumme Balance passend zur Tellerid aktualisieren
 		//	-	In "Accounts" den Kontostand BALANCE passend zur ACCID aktualisieren
-		//	-	
-
-		
-		Connection con = DriverManager.getConnection("jdbc:mariadb://"
-				+ "10.37.129.3:3306"
-				+ "/?rewriteBatchedStatements=true","dbi", "dbi_pass");
+		//	-		
+		Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/test","root", "dbi2015");
 		Statement statement = con.createStatement();
 						
 		// Eingabe initialisieren
@@ -90,10 +86,19 @@ public class DBI_PT4_9 {
 		System.out.println("Aufgabenstellung: Praktikumgsaufgabe 9\n");
 				
 		// n abfragen
-		System.out.print("Geben Sie den Parameter 'n' ein: ");
-		String eingabe = scanner.nextLine();
-		int queryInput = Integer.parseInt(eingabe);
+		System.out.print("Geben Sie eine AccountID ein: ");
+		String acc = scanner.nextLine();
+		int accid = Integer.parseInt(acc);
+		System.out.print("Geben Sie eine BranchID ein: ");
+		String branch = scanner.nextLine();
+		int branchid = Integer.parseInt(branch);
+		System.out.print("Geben Sie eine TellersID ein: ");
+		String tellers = scanner.nextLine();
+		int tellersid = Integer.parseInt(tellers);
+		System.out.print("Geben Sie ein Delta ein: ");
+		String value = scanner.nextLine();
+		int delta = Integer.parseInt(value);
 		scanner.close();			
-
+		payIn(con, accid, tellersid, branchid, delta);
 	}
 }
