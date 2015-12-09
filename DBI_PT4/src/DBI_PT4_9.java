@@ -30,40 +30,41 @@ public class DBI_PT4_9 {
 		
 		// UPDATE BALANCE@ BRANCHES
 		String txt = "select balance from branches where branchid = "+branchId;
-		stm.executeUpdate(txt);
+		stm.execute(txt);
 		rs = stm.getResultSet();
-		if( rs != null ) 
+		
+		if(rs!=null) 
 	    {
-	    		result = rs.getInt(1);
+	    		result = rs.findColumn("balance");
 	    		result += delta;
 	    }
 		txt = "update branches SET balance ="+result+" where branchid = "+branchId;
 		stm.executeUpdate(txt);
-		
+		rs = null;
 		// UPDATE BALANCE@ TELLERS
-		txt = "select balance from tellers where tellersid = "+tellersId;
+		txt = "select balance from tellers where tellerid = "+tellersId;
 		stm.executeUpdate(txt);
 		rs = stm.getResultSet();
 		if( rs != null ) 
 	    {
-	    		result = rs.getInt(1);
+				result = rs.findColumn("balance");
 	    		result += delta;
 	    }
-		txt = "update tellers SET balance ="+result+" where tellersid = "+tellersId;
+		txt = "update tellers SET balance ="+result+" where tellerid = "+tellersId;
 		stm.executeUpdate(txt);
-		
+		rs = null;
 		// UPDATE BALANCE@ ACCOUNTS
 		txt = "select balance from accounts where accid = "+accId;
 		stm.executeUpdate(txt);
 		rs = stm.getResultSet();
 		if( rs != null ) 
 		{
-			result = rs.getInt(1);
+			result = rs.findColumn("balance");
 		  	result += delta;
 		}
 		txt = "update accounts SET balance ="+result+" where accid = "+accId;
 		stm.executeUpdate(txt);
-						
+		rs = null;	
 	}
 	
 	public static void main(String[] args) throws SQLException {
