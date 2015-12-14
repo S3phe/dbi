@@ -10,12 +10,22 @@ public class DBI_PT4_9 {
 	static Scanner scanner = new Scanner(System.in);
 	
 	
+	public static void main(String[] args) throws SQLException {
+		// TODO Auto-generated method stub
+	
+		//Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/test","root", "dbi2015");
+		Connection con = DriverManager.getConnection("jdbc:mariadb://10.37.129.3:3306/benchmark","dbi", "dbi_pass");			
+		
+		menu(con);
+				
+	}
+	
 	public int getBalance(Connection con, int accId) throws SQLException
 	{
 		Statement stm = con.createStatement();
 		ResultSet rs = null;
 		int result = 0;
-		String txt = "select balance from accounts where accid ="+accId;
+		String txt = "SELECT balance FROM accounts WHERE accid ="+accId;
 		stm.executeUpdate(txt);
 		rs = stm.getResultSet();
 	    while( rs != null ) 
@@ -32,7 +42,7 @@ public class DBI_PT4_9 {
 		int result = 0;
 		
 		// UPDATE BALANCE@ BRANCHES
-		String txt = "select balance from branches where branchid = "+branchId;
+		String txt = "SELECT balance FROM branches WHERE branchid = "+branchId;
 		stm.execute(txt);
 		rs = stm.getResultSet();
 		
@@ -41,11 +51,11 @@ public class DBI_PT4_9 {
 	    		result = rs.findColumn("balance");
 	    		result += delta;
 	    }
-		txt = "update branches SET balance ="+result+" where branchid = "+branchId;
+		txt = "UPDATE branches SET balance ="+result+" WHERE branchid = "+branchId;
 		stm.executeUpdate(txt);
 		rs = null;
 		// UPDATE BALANCE@ TELLERS
-		txt = "select balance from tellers where tellerid = "+tellersId;
+		txt = "SELECT balance FROM tellers WHERE tellerid = "+tellersId;
 		stm.executeUpdate(txt);
 		rs = stm.getResultSet();
 		if( rs != null ) 
@@ -53,11 +63,11 @@ public class DBI_PT4_9 {
 				result = rs.findColumn("balance");
 	    		result += delta;
 	    }
-		txt = "update tellers SET balance ="+result+" where tellerid = "+tellersId;
+		txt = "UPDATE tellers SET balance ="+result+" WHERE tellerid = "+tellersId;
 		stm.executeUpdate(txt);
 		rs = null;
 		// UPDATE BALANCE@ ACCOUNTS
-		txt = "select balance from accounts where accid = "+accId;
+		txt = "SELECT balance FROM accounts WHERE accid = "+accId;
 		stm.executeUpdate(txt);
 		rs = stm.getResultSet();
 		if( rs != null ) 
@@ -65,7 +75,7 @@ public class DBI_PT4_9 {
 			result = rs.findColumn("balance");
 		  	result += delta;
 		}
-		txt = "update accounts SET balance ="+result+" where accid = "+accId;
+		txt = "UPDATE accounts SET balance ="+result+" WHERE accid = "+accId;
 		stm.executeUpdate(txt);
 		rs = null;	
 	}
@@ -118,26 +128,5 @@ public class DBI_PT4_9 {
 		
 	}
 	
-	public static void main(String[] args) throws SQLException {
-		// TODO Auto-generated method stub
-		// Hier kommt Aufgabe9 rein
-		
-		// Kontostands-TX (ACCID eingeben und BALANCE zurückgeben
-		// Einzahlungs-TX (ACCID,TELLERID,BRANCHID,DELTA eingeben. 
-		//	-	In "Branches" die Bilanzsumme Balance passend zur Branchid aktualisieren
-		//	-	In "Tellers" die Bilanzsumme Balance passend zur Tellerid aktualisieren
-		//	-	In "Accounts" den Kontostand BALANCE passend zur ACCID aktualisieren
-		//	-		
-		//Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/test","root", "dbi2015");
-		Connection con = DriverManager.getConnection("jdbc:mariadb://10.37.129.3:3306/benchmark","dbi", "dbi_pass");
-		Statement statement = con.createStatement();
-						
-		
-		
-		menu(con);
-		
-		
-				
-		
-	}
+	
 }
