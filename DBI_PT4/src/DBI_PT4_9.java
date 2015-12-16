@@ -13,6 +13,9 @@ public class DBI_PT4_9 {
 	
 	protected static Random rand = new Random();
 	
+	
+	
+	
 	public static void txLoop()
 	{
 		// Zeitmessung starten
@@ -64,24 +67,28 @@ public class DBI_PT4_9 {
 		{
 			while(runTime<35%)
 			{
-				tx_kontostand(con);
+				txy
 			}
 			
 			while(runtime<10%)
 			{
-				tx_einzahlung(con);
+				txy
 			}
 			
 			while(runTime<40%)
 			{
-				tx_analyse(con);
+				txyz
 			}
 		}
-			
+		
+		
 		runTime=System.currentTimeMillis()-startTime;
 		System.out.println("Fertig. (Laufzeit: "+runTime+" ms)");
 	}
-		
+	
+	
+	
+	
 	public static void resume() throws IOException
 	{
 		String dummy = scanner.nextLine();
