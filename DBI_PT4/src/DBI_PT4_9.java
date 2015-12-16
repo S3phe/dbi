@@ -4,11 +4,17 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Random;
 import java.util.Scanner;
 
 public class DBI_PT4_9 {
 	// Eingabe initialisieren
 	static Scanner scanner = new Scanner(System.in);
+	
+	protected static Random rand = new Random();
+	
+	
+	
 	
 	public static void txLoop()
 	{
@@ -159,12 +165,12 @@ public class DBI_PT4_9 {
 		return result;
 	}
 	
-	// Hilfsfunktion zur Überprüfung bereits getätigter Zahlungen mit einem speziellen Wert DELTA
+	// Hilfsfunktion zur ï¿½berprï¿½fung bereits getï¿½tigter Zahlungen mit einem speziellen Wert DELTA
 	public static int consistsDelta(Connection con, int delta) throws SQLException{
 		Statement stm = con.createStatement();
 		ResultSet rs = null;
 		
-		// ALLE TUPEL AUS HISTORY MIT DEM ÜBERGABEPARAM. DELTA
+		// ALLE TUPEL AUS HISTORY MIT DEM ï¿½BERGABEPARAM. DELTA
 		String txt = "SELECT * FROM history WHERE delta = "+delta;
 		stm.execute(txt);
 		rs = stm.getResultSet();
@@ -176,7 +182,7 @@ public class DBI_PT4_9 {
 		return counter;	
 	}
 	
-	// Menüführung
+	// Menï¿½fï¿½hrung
 		public static void menu(Connection con) throws SQLException, IOException {
 			while(true)
 			{
@@ -184,7 +190,7 @@ public class DBI_PT4_9 {
 				System.out.println("Aufgabenstellung: Praktikumgsaufgabe 9\n");
 				// Auswahl
 				System.out.println("\n\n\n\n\n\n");
-				System.out.println("///////   MENÜ   ///////");
+				System.out.println("///////   MENï¿½   ///////");
 				System.out.println("------------------------");
 				System.out.println("||||||||||||||||||||||||");
 				System.out.println("------------------------");
@@ -217,7 +223,7 @@ public class DBI_PT4_9 {
 			int accid = Integer.parseInt(acc);
 			int output = getBalance(con, accid);
 			scanner.close();
-			System.out.println("Der momentane Kontostand des Konto's "+accid+" beträgt "+output+" Einheiten!");
+			System.out.println("Der momentane Kontostand des Konto's "+accid+" betrï¿½gt "+output+" Einheiten!");
 			resume();
 		}
 		
@@ -237,7 +243,7 @@ public class DBI_PT4_9 {
 			int delta = Integer.parseInt(value);
 			scanner.close();			
 			int output = payIn(con, accid, tellersid, branchid, delta);
-			System.out.println("Der aktualisierte Kontostand des Konto's "+accid+" beträgt "+output+" Einheiten!");
+			System.out.println("Der aktualisierte Kontostand des Konto's "+accid+" betrï¿½gt "+output+" Einheiten!");
 			resume();
 		}
 		
@@ -247,11 +253,11 @@ public class DBI_PT4_9 {
 			String s = scanner.nextLine();		
 			int delta = Integer.parseInt(s);
 			int amount = consistsDelta(con, delta);
-			System.out.println("Die Anzahl der Überweisungen mit dem Delta-Wert "+delta+" betragen: "+amount);
+			System.out.println("Die Anzahl der ï¿½berweisungen mit dem Delta-Wert "+delta+" betragen: "+amount);
 			resume();
 		}
 	
-	// Mainfunktion mit Aufruf des Menü's (enthält Steuerung des Programmfluss) //	
+	// Mainfunktion mit Aufruf des Menï¿½'s (enthï¿½lt Steuerung des Programmfluss) //	
 	public static void main(String[] args) throws SQLException, IOException {
 		// TODO Auto-generated method stub
 		Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3307/benchmark","root", "dbi2015");
