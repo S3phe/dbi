@@ -10,6 +10,13 @@ import java.util.Scanner;
 public class DBI_PT4_9 {
 	// Eingabe initialisieren
 	static Scanner scanner = new Scanner(System.in);
+	
+	
+	// TEST VON SEBASTIAN
+	//2
+	
+	
+	
 	public static Random rand = new Random();
 	
 	public static String randomString (int length) {
