@@ -17,11 +17,11 @@ public class DBI_PT4_9 {
 		System.out.println("Soll eine neue 100-tps Datenbank angelegt werden? [J/N]");
 		String antwort = scanner.nextLine();
 		if ((antwort.equals("j")) || (antwort.equals("J") )){
-			DBI_PT4_9_init.db_prepare(con);
+			DBI_PT4_9_init.db_recreate(con);
+		}else{
+			DBI_PT4_9_init.db_clean_history(con);
 		}
-		
-		
-		// Nun der Benchmark laut Vorgabe:
+		// Benchmark laut Vorgabe:
 		// 4 Min Einschwingphase
 		// 5 Min Messphase
 		// 1 Min Ausschwingphase
@@ -41,7 +41,7 @@ public class DBI_PT4_9 {
 		int transaktionen = tx_loop(con, dauer_messen, prozent_kontostand, prozent_einzahlung, prozent_analyse, wartezeit);
 		System.out.println("Fertig.");
 		System.out.println("Anzahl der Transaktionen : "+transaktionen);
-		System.out.println("Transaktionen pro Sekunde: "+(transaktionen / (dauer_messen*1000)));
+		System.out.println("Transaktionen pro Sekunde: "+((double)transaktionen / (dauer_messen)));
 				
 		System.out.println("Starte Ausschwingphase ("+dauer_ausschwingen+"s)");
 		tx_loop(con, dauer_ausschwingen, prozent_kontostand, prozent_einzahlung, prozent_analyse, wartezeit);
@@ -51,6 +51,10 @@ public class DBI_PT4_9 {
 	
 	
 	public static int tx_loop(Connection con, int dauer, int prozent_kontostand, int prozent_einzahlung, int prozent_analyse, int wartezeit) throws SQLException, InterruptedException{
+		/* Dies ist der wichtigste Teil des Programms.
+		 * Hier wird eine Schleife für <dauer> Sekunden durchlaufen, mit den o. angegeben prozentualen Gewichtungen und einer <wartezeit> in ms nach jedem TX.
+		 */
+		
 		int anzahl_einzahlung = 0;
 		int anzahl_analyse = 0;
 		int anzahl_kontostand = 0;
@@ -59,40 +63,43 @@ public class DBI_PT4_9 {
 		long beginn = System.currentTimeMillis();
 		
 		while(System.currentTimeMillis() <= (beginn+(dauer*1000))){
-			ausgefuehrt = false;
-			while (!ausgefuehrt){
-				switch(rand.nextInt(3)){
+			ausgefuehrt = false;			
+			while (!ausgefuehrt){			// Bei falscher prozent. Gewichtung, Schleife so lange durchlaufen, bis ein TX durchgefuehrt wurde.
+				switch(rand.nextInt(3)){	// Zufaelliger TX (0-2)
+				/*
+				 * Bei weniger als 5 Durchlaeufen darf jedes TX ausgefuehrt werden. Bei so kleinen Werten gibt es sonst Probleme 15,35,50% zu bestimmen.
+				 * Ansonsten wird darauf geachtet, dass ein TX nur durchgefuehrt wird, wenn die prozentuale Gewichtung noch nicht erreicht wurde.
+				 * Wichtig: Multiplikation mit "1.0" um die Rechnung als "double" durchzufuehren. Ansonsten werden Nachkommestellen nicht beachtet und abgeschnitten. (15.9 = 15)
+				 */
 					case 0:	// Einzahlungs-TX
-						if (  (anzahl_einzahlung < 5 ) || (  ( (anzahl_einzahlung*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_einzahlung ) ){
+						if (  (anzahl_einzahlung < 5 ) || (  ( (anzahl_einzahlung*100.0) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_einzahlung*1.0 ) ){
 							payIn(con, (rand.nextInt(1000000)+1), (rand.nextInt(1000)+1), (rand.nextInt(100)+1), (rand.nextInt(10000)+1));
 							ausgefuehrt = true;
 							anzahl_einzahlung++;
 						} break;
 					case 1:	// Kontostands-TX
-						if ( (anzahl_kontostand < 5 ) ||  (  ( (anzahl_kontostand*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_kontostand ) ){
+						if ( (anzahl_kontostand < 5 ) ||  (  ( (anzahl_kontostand*100.0) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_kontostand*1.0 ) ){
 							getBalance(con, (rand.nextInt(1000000)+1));
 							ausgefuehrt = true;
 							anzahl_kontostand++;
 						} break;
 					case 2: // Analyse-TX
-						if ( (anzahl_analyse < 5 ) || (  ( (anzahl_analyse*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_analyse ) ){
+						if ( (anzahl_analyse < 5 ) || (  ( (anzahl_analyse*100.0) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_analyse*1.0 ) ){
 							analyse(con, (rand.nextInt(10000)+1));
 							ausgefuehrt = true;
 							anzahl_analyse++;
 						} break;
 				}
 			}
+			// <wartezeit> ms nach jedem erfolgreichen TX warten
 			Thread.sleep(wartezeit);
 		}
+		// Anzahl der Summe der Transaktionen zurueckgeben
 		return (anzahl_analyse + anzahl_einzahlung + anzahl_kontostand);
 	}
 	
 	
-	public static void resume() throws IOException
-	{
-		String dummy = scanner.nextLine();
-	}
-	
+
 	// HILFSFUNKTIONEN //
 	// Hilfsfunktion zur Ermittlung eines Kontostandes anhand seiner ACCOUNT-ID
 	public static int getBalance(Connection con, int accId) throws SQLException
@@ -167,12 +174,9 @@ public class DBI_PT4_9 {
 	// Hilfsfunktion zur Ueberpruefung bereits getaetigter Zahlungen mit einem speziellen Wert DELTA
 	public static int analyse(Connection con, int delta) throws SQLException{
 		Statement stm = con.createStatement();
-		ResultSet rs = null;
-		
+		ResultSet rs = stm.executeQuery("SELECT count(*) FROM history WHERE delta = "+delta);
+		rs.next();
 		// ALLE TUPEL AUS HISTORY MIT DEM UEBERGABEPARAM. DELTA
-		String txt = "SELECT count(*) FROM history WHERE delta = "+delta;
-		stm.execute(txt);
-		rs = stm.getResultSet();
 		return rs.getInt(1);
 	}
 	
@@ -201,7 +205,6 @@ public class DBI_PT4_9 {
 			System.out.print("Eingabe: ");
 			int auswahl = Integer.parseInt(scanner.nextLine());
 			
-			
 			switch(auswahl){
 				case 1: tx_kontostand(con); break;
 				case 2: tx_einzahlung(con); break;
@@ -221,7 +224,6 @@ public class DBI_PT4_9 {
 		int output = getBalance(con, accid);
 		scanner.close();
 		System.out.println("Der momentane Kontostand des Konto's "+accid+" betraegt "+output+" Einheiten!");
-		resume();
 	}
 		
 	public static void tx_einzahlung(Connection con) throws SQLException, IOException{
@@ -241,7 +243,6 @@ public class DBI_PT4_9 {
 		scanner.close();			
 		int output = payIn(con, accid, tellersid, branchid, delta);
 		System.out.println("Der aktualisierte Kontostand des Konto's "+accid+" betraegt "+output+" Einheiten!");
-		resume();
 	}
 		
 	public static void tx_analyse(Connection con) throws SQLException, IOException{
@@ -251,7 +252,6 @@ public class DBI_PT4_9 {
 		int delta = Integer.parseInt(s);
 		int amount = analyse(con, delta);
 		System.out.println("Die Anzahl der Ueberweisungen mit dem Delta-Wert "+delta+" betragen: "+amount);
-		resume();
 	}
 	
 	// Mainfunktion mit Aufruf des Menue's (enthaelt Steuerung des Programmfluss) //	

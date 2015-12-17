@@ -28,8 +28,14 @@ public class DBI_PT4_9_init {
 		sql.execute("SET UNIQUE_CHECKS=1");
 		con.setAutoCommit(true);
 	}
-
-	public static void db_prepare(Connection con) throws SQLException{
+public static void db_clean_history(Connection con) throws SQLException{
+	System.out.println("Tabelle History leeren...");
+	Statement statement=con.createStatement();
+	statement.execute("TRUNCATE TABLE history");
+}
+	
+	
+	public static void db_recreate(Connection con) throws SQLException{
 		System.out.println("Statement erzeugen...");
 		// Komplette Benchmark Datenbank neu erstellen
 		Statement statement=con.createStatement();
