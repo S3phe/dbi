@@ -25,141 +25,67 @@ public class DBI_PT4_9 {
 		// 4 Min Einschwingphase
 		// 5 Min Messphase
 		// 1 Min Ausschwingphase
-		int dauer_einschwingen	= 240;	// Sekunden
-		int dauer_messen		= 300;	// Sekunden
-		int dauer_ausschwingen	= 60;	// Sekunden
+		int dauer_einschwingen		= 240;	// Sekunden
+		int dauer_messen			= 300;	// Sekunden
+		int dauer_ausschwingen		= 60;	// Sekunden
 		
-		float gewicht_kontostand 	= 35;	// Prozent
-		float gewicht_einzahlung 	= 50;	// Prozent
-		float gewicht_analyse		= 15;	// Prozent
-		long wartezeit			= 50;	// MilliSekunden
-		
-		
-		long beginn;
-		
-		int anzahl_einzahlung;
-		int anzahl_analyse;
-		int anzahl_kontostand;
-		
-		boolean ausgefuehrt = false;
-		
-		
+		int prozent_kontostand 		= 35;	// Prozent
+		int prozent_einzahlung 		= 50;	// Prozent
+		int prozent_analyse			= 15;	// Prozent
+		int wartezeit				= 50;	// MilliSekunden
+				
 		System.out.println("Starte Einschwingphase ("+dauer_einschwingen+"s)");
-		anzahl_einzahlung = 0;
-		anzahl_analyse = 0;
-		anzahl_kontostand = 0;
-		
-		
-		beginn = System.currentTimeMillis();
-		
-		while(System.currentTimeMillis() <= (beginn+(dauer_einschwingen*1000))){
-			ausgefuehrt = false;
-			while (!ausgefuehrt){
-				switch(rand.nextInt(3)){
-					case 0:	// Einzahlungs-TX
-						if (  (anzahl_einzahlung < 5 ) || (  ( (anzahl_einzahlung*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_einzahlung ) ){
-							payIn(con, (rand.nextInt(1000000)+1), (rand.nextInt(1000)+1), (rand.nextInt(100)+1), (rand.nextInt(10000)+1));
-							ausgefuehrt = true;
-							anzahl_einzahlung++;
-						} break;
-					case 1:	// Kontostands-TX
-						if ( (anzahl_kontostand < 5 ) ||  (  ( (anzahl_kontostand*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_kontostand ) ){
-							getBalance(con, (rand.nextInt(1000000)+1));
-							ausgefuehrt = true;
-							anzahl_kontostand++;
-						} break;
-					case 2: // Analyse-TX
-						if ( (anzahl_analyse < 5 ) || (  ( (anzahl_analyse*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_analyse ) ){
-							analyse(con, (rand.nextInt(10000)+1));
-							ausgefuehrt = true;
-							anzahl_analyse++;
-						} break;
-				}
-			}
-			Thread.sleep(wartezeit);
-		}
+		tx_loop(con, dauer_einschwingen, prozent_kontostand, prozent_einzahlung, prozent_analyse, wartezeit);
 		
 		System.out.println("Starte Messphase ("+dauer_messen+"s)");
-		anzahl_einzahlung = 0;
-		anzahl_analyse = 0;
-		anzahl_kontostand = 0;
-		
-		
-		beginn = System.currentTimeMillis();
-		
-		while(System.currentTimeMillis() <= (beginn+(dauer_messen*1000))){
-			ausgefuehrt = false;
-			while (!ausgefuehrt){
-				switch(rand.nextInt(3)){
-					case 0:	// Einzahlungs-TX
-						if (  (anzahl_einzahlung < 5 ) || (  ( (anzahl_einzahlung*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_einzahlung ) ){
-							payIn(con, (rand.nextInt(1000000)+1), (rand.nextInt(1000)+1), (rand.nextInt(100)+1), (rand.nextInt(10000)+1));
-							ausgefuehrt = true;
-							anzahl_einzahlung++;
-						} break;
-					case 1:	// Kontostands-TX
-						if ( (anzahl_kontostand < 5 ) ||  (  ( (anzahl_kontostand*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_kontostand ) ){
-							getBalance(con, (rand.nextInt(1000000)+1));
-							ausgefuehrt = true;
-							anzahl_kontostand++;
-						} break;
-					case 2: // Analyse-TX
-						if ( (anzahl_analyse < 5 ) || (  ( (anzahl_analyse*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_analyse ) ){
-							analyse(con, (rand.nextInt(10000)+1));
-							ausgefuehrt = true;
-							anzahl_analyse++;
-						} break;
-				}
-			}
-			Thread.sleep(wartezeit);
-		}
+		int transaktionen = tx_loop(con, dauer_messen, prozent_kontostand, prozent_einzahlung, prozent_analyse, wartezeit);
 		System.out.println("Fertig.");
-		System.out.println("Anzahl Einzahlung: "+anzahl_einzahlung);
-		System.out.println("Anzahl Kontostand: "+anzahl_kontostand);
-		System.out.println("Anzahl Analyse:    "+anzahl_analyse);
-		System.out.println("SUMME:             "+(anzahl_einzahlung+anzahl_kontostand+anzahl_analyse));
-		System.out.println("Ergebnis:          "+( (anzahl_einzahlung+anzahl_kontostand+anzahl_analyse) / (dauer_messen*1000))+" pro Sekunde");
-		
-		
+		System.out.println("Anzahl der Transaktionen : "+transaktionen);
+		System.out.println("Transaktionen pro Sekunde: "+(transaktionen / (dauer_messen*1000)));
+				
 		System.out.println("Starte Ausschwingphase ("+dauer_ausschwingen+"s)");
-		anzahl_einzahlung = 0;
-		anzahl_analyse = 0;
-		anzahl_kontostand = 0;
+		tx_loop(con, dauer_ausschwingen, prozent_kontostand, prozent_einzahlung, prozent_analyse, wartezeit);
 		
-		
-		beginn = System.currentTimeMillis();
-		
-		while(System.currentTimeMillis() <= (beginn+(dauer_ausschwingen*1000))){
-			ausgefuehrt = false;
-			while (!ausgefuehrt){
-				switch(rand.nextInt(3)){
-					case 0:	// Einzahlungs-TX
-						if (  (anzahl_einzahlung < 5 ) || (  ( (anzahl_einzahlung*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_einzahlung ) ){
-							payIn(con, (rand.nextInt(1000000)+1), (rand.nextInt(1000)+1), (rand.nextInt(100)+1), (rand.nextInt(10000)+1));
-							ausgefuehrt = true;
-							anzahl_einzahlung++;
-						} break;
-					case 1:	// Kontostands-TX
-						if ( (anzahl_kontostand < 5 ) ||  (  ( (anzahl_kontostand*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_kontostand ) ){
-							getBalance(con, (rand.nextInt(1000000)+1));
-							ausgefuehrt = true;
-							anzahl_kontostand++;
-						} break;
-					case 2: // Analyse-TX
-						if ( (anzahl_analyse < 5 ) || (  ( (anzahl_analyse*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= gewicht_analyse ) ){
-							analyse(con, (rand.nextInt(10000)+1));
-							ausgefuehrt = true;
-							anzahl_analyse++;
-						} break;
-				}
-			}
-			Thread.sleep(wartezeit);
-		}
 		System.out.println("Fertig.");
 	}
 	
 	
-	
+	public static int tx_loop(Connection con, int dauer, int prozent_kontostand, int prozent_einzahlung, int prozent_analyse, int wartezeit) throws SQLException, InterruptedException{
+		int anzahl_einzahlung = 0;
+		int anzahl_analyse = 0;
+		int anzahl_kontostand = 0;
+		
+		boolean ausgefuehrt = false;
+		long beginn = System.currentTimeMillis();
+		
+		while(System.currentTimeMillis() <= (beginn+(dauer*1000))){
+			ausgefuehrt = false;
+			while (!ausgefuehrt){
+				switch(rand.nextInt(3)){
+					case 0:	// Einzahlungs-TX
+						if (  (anzahl_einzahlung < 5 ) || (  ( (anzahl_einzahlung*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_einzahlung ) ){
+							payIn(con, (rand.nextInt(1000000)+1), (rand.nextInt(1000)+1), (rand.nextInt(100)+1), (rand.nextInt(10000)+1));
+							ausgefuehrt = true;
+							anzahl_einzahlung++;
+						} break;
+					case 1:	// Kontostands-TX
+						if ( (anzahl_kontostand < 5 ) ||  (  ( (anzahl_kontostand*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_kontostand ) ){
+							getBalance(con, (rand.nextInt(1000000)+1));
+							ausgefuehrt = true;
+							anzahl_kontostand++;
+						} break;
+					case 2: // Analyse-TX
+						if ( (anzahl_analyse < 5 ) || (  ( (anzahl_analyse*100) / (anzahl_einzahlung+anzahl_analyse+anzahl_kontostand) ) <= prozent_analyse ) ){
+							analyse(con, (rand.nextInt(10000)+1));
+							ausgefuehrt = true;
+							anzahl_analyse++;
+						} break;
+				}
+			}
+			Thread.sleep(wartezeit);
+		}
+		return (anzahl_analyse + anzahl_einzahlung + anzahl_kontostand);
+	}
 	
 	
 	public static void resume() throws IOException
@@ -244,15 +170,10 @@ public class DBI_PT4_9 {
 		ResultSet rs = null;
 		
 		// ALLE TUPEL AUS HISTORY MIT DEM UEBERGABEPARAM. DELTA
-		String txt = "SELECT * FROM history WHERE delta = "+delta;
+		String txt = "SELECT count(*) FROM history WHERE delta = "+delta;
 		stm.execute(txt);
 		rs = stm.getResultSet();
-		int counter = 0;
-		while(rs.next()) 
-	    {
-				counter+=1;
-	    }
-		return counter;	
+		return rs.getInt(1);
 	}
 	
 	// Menuefuehrung
@@ -262,7 +183,7 @@ public class DBI_PT4_9 {
 			// Aufgabenstellung
 			System.out.println("Aufgabenstellung: Praktikumgsaufgabe 9\n");
 			// Auswahl
-			System.out.println("\n\n\n\n\n\n");
+			System.out.println("\n\n");
 			System.out.println("///////   MENU   ///////");
 			System.out.println("------------------------");
 			System.out.println("||||||||||||||||||||||||");
